@@ -1,0 +1,15 @@
+<button onclick="completeTheory()">Я прочитал теорию</button>
+
+<script src="course.js"></script>
+<script>
+function completeTheory() {
+  updateProgress({
+    course: "html",
+    theory: true,
+    examples: false,
+    testScore: 0
+  });
+
+  alert("Теория засчитана ✅");
+}
+</script>

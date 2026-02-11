@@ -1,0 +1,17 @@
+<button onclick="finishTest()">Завершить тест</button>
+
+<script src="course.js"></script>
+<script>
+function finishTest() {
+  const score = 15; // допустим 15/20
+
+  updateProgress({
+    course: "html",
+    theory: true,
+    examples: true,
+    testScore: score
+  });
+
+  alert("Тест завершён. Балл: " + score);
+}
+</script>
