@@ -12,6 +12,10 @@ import (
 func main() {
 	config.ConnectMongo()
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Handbook API is running!"))
+	})
+
 	http.HandleFunc("/api/register", handlers.Register)
 	http.HandleFunc("/api/login", handlers.Login)
 
