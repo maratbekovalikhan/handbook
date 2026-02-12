@@ -3,13 +3,24 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"handbook/config"
 	"handbook/handlers"
 	"handbook/middleware"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: .env file not found, relying on environment variables")
+	}
+
+	log.Println("MONGO_URI:", os.Getenv("MONGO_URI"))
+
 	config.ConnectMongo()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +35,11 @@ func main() {
 	http.Handle("/api/progress/me",
 		middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProgress)))
 
-	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println("Server running on :" + port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
