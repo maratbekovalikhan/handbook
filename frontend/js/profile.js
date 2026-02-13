@@ -1,29 +1,31 @@
-const API = "https://YOUR_RENDER_URL";
+const API = "https://handbook-backend-ah0j.onrender.com";
 
-async function loadProgress() {
+async function loadProfile() {
   const token = localStorage.getItem("token");
+
   if (!token) {
     window.location.href = "login.html";
     return;
   }
 
-  const res = await fetch(`${API}/api/progress/me`, {
+  const res = await fetch(`${API}/api/profile`, {
     headers: {
       "Authorization": "Bearer " + token
     }
   });
 
-  const data = await res.json();
-  const container = document.getElementById("progress");
+  if (!res.ok) {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+    return;
+  }
 
-  container.innerHTML = "";
-  data.forEach(p => {
-    container.innerHTML += `
-      <p>
-        <b>${p.course.toUpperCase()}</b> — ${p.percent}%
-      </p>
-    `;
-  });
+  const user = await res.json();
+
+  document.getElementById("profile").innerHTML = `
+    <p><strong>Имя:</strong> ${user.name}</p>
+    <p><strong>Email:</strong> ${user.email}</p>
+  `;
 }
 
-loadProgress();
+loadProfile();

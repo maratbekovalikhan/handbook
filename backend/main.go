@@ -13,13 +13,7 @@ import (
 )
 
 func main() {
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: .env file not found, relying on environment variables")
-	}
-
-	log.Println("MONGO_URI:", os.Getenv("MONGO_URI"))
+	_ = godotenv.Load()
 
 	config.ConnectMongo()
 
@@ -29,11 +23,7 @@ func main() {
 
 	http.HandleFunc("/api/register", handlers.Register)
 	http.HandleFunc("/api/login", handlers.Login)
-
-	http.Handle("/api/progress/update",
-		middleware.AuthMiddleware(http.HandlerFunc(handlers.UpdateProgress)))
-	http.Handle("/api/progress/me",
-		middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProgress)))
+	http.Handle("/api/profile", middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProfile)))
 
 	port := os.Getenv("PORT")
 	if port == "" {

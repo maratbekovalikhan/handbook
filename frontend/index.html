@@ -1,39 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Code Handbook</title>
+<meta charset="UTF-8">
+<title>Handbook</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Учите код с нами 🚀</h1>
+  <header class="header">
+  <div class="logo">Handbook</div>
 
-  <div>
-    <h3>HTML</h3>
-    <a href="courses.html">Пройти курс</a>
+  <nav>
+    <a href="/index.html">Главная</a>
+    <a href="/courses/html/theory.html">HTML</a>
+    <a href="/courses/css/theory.html">CSS</a>
+    <a href="/courses/javascript/theory.html">JavaScript</a>
+    <a href="/courses/go/theory.html">Go</a>
+    <a href="/courses/postgresql/theory.html">PostgreSQL</a>
+  </nav>
+
+  <div class="auth-links" id="authLinks">
+    <a href="/login.html">Login</a>
+    <a href="/register.html">Register</a>
   </div>
+</header>
 
-  <div>
-    <h3>CSS</h3>
-    <a href="courses.html">Пройти курс</a>
+<h1 class="title">Учите код с нами 🚀</h1>
+
+<div class="courses-grid">
+
+<div class="course-card">
+  <h2>HTML</h2>
+  <p>Изучите основы веб-разметки</p>
+
+  <a href="courses/html/theory.html" class="main-btn">
+    Начать курс
+  </a>
+
+  <div class="course-links">
+    <a href="courses/html/examples.html">Примеры</a>
+    <a href="courses/html/tags.html">Теги</a>
+    <a href="courses/html/articles.html">Статьи</a>
   </div>
+</div>
 
-  <div>
-    <h3>JavaScript</h3>
-    <a href="courses.html">Пройти курс</a>
+<div class="course-card">
+  <h2>CSS</h2>
+  <p>Стилизация и дизайн сайтов</p>
+
+  <a href="courses/html/theory.html" class="main-btn">
+    Начать курс
+  </a>
+
+  <div class="course-links">
+    <a href="courses/html/examples.html">Примеры</a>
+    <a href="courses/html/selectors.html">Теги</a>
+    <a href="courses/html/articles.html">Статьи</a>
   </div>
+</div>
 
-  <div>
-    <h3>Go</h3>
-    <a href="courses.html">Пройти курс</a>
+<div class="course-card">
+  <h2>JavaScript</h2>
+  <p>Добавьте интерактивность</p>
+
+  <a href="courses/html/theory.html" class="main-btn">
+    Начать курс
+  </a>
+
+  <div class="course-links">
+    <a href="courses/html/examples.html">Примеры</a>
+    <a href="courses/html/tags.html">Теги</a>
+    <a href="courses/html/articles.html">Статьи</a>
   </div>
+</div>
 
-  <div>
-    <h3>PostgreSQL</h3>
-    <a href="courses.html">Пройти курс</a>
+<div class="course-card">
+  <h2>Go</h2>
+  <p>Бэкэнд рахработка на Go</p>
+
+  <a href="courses/html/theory.html" class="main-btn">
+    Начать курс
+  </a>
+
+  <div class="course-links">
+    <a href="courses/html/examples.html">Примеры</a>
+    <a href="courses/html/tags.html">Теги</a>
+    <a href="courses/html/articles.html">Статьи</a>
   </div>
+</div>
 
-  <hr>
-  <a href="login.html">Войти</a> |
-  <a href="register.html">Регистрация</a>
+
+<div class="course-card">
+  <h2>PostgreSQL</h2>
+  <p>Работа с базами данных</p>
+
+  <a href="courses/html/theory.html" class="main-btn">
+    Начать курс
+  </a>
+
+  <div class="course-links">
+    <a href="courses/html/examples.html">Примеры</a>
+    <a href="courses/html/tags.html">Теги</a>
+    <a href="courses/html/articles.html">Статьи</a>
+  </div>
+</div>
+
+</div>
+
+<script src="js/progress.js"></script>
 </body>
 </html>

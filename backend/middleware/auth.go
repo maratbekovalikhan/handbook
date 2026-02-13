@@ -11,14 +11,15 @@ import (
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
-		if auth == "" {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		tokenStr := strings.Split(auth, " ")[1]
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		tokenString := strings.Split(authHeader, " ")[1]
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
@@ -28,7 +29,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		ctx := context.WithValue(r.Context(), "userId", claims["userId"])
+		userID := claims["id"].(string)
+
+		ctx := context.WithValue(r.Context(), "userID", userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
