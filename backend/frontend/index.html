@@ -1,59 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Handbook Auth</title>
+<title>Handbook</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Регистрация</h1>
-<input id="name" placeholder="Name">
-<input id="email" placeholder="Email">
-<input id="password" placeholder="Password" type="password">
-<button onclick="register()">Register</button>
 
-<h1>Логин</h1>
-<input id="loginEmail" placeholder="Email">
-<input id="loginPassword" placeholder="Password" type="password">
-<button onclick="login()">Login</button>
+<h1>Handbook Web Technologies</h1>
 
-<h2>Профиль</h2>
-<pre id="profile"></pre>
+<div class="grid">
+  <div class="card">HTML</div>
+  <div class="card">CSS</div>
+  <div class="card">JavaScript</div>
+  <div class="card">Go</div>
+  <div class="card">PostgreSQL</div>
+</div>
 
-<script>
-async function register() {
-    const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-            name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
-        })
-    });
-    alert(res.status === 201 ? 'Registered!' : 'Failed');
-}
+<div class="auth">
+  <a href="login.html">Login</a>
+  <a href="register.html">Register</a>
+</div>
 
-async function login() {
-    const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-            email: document.getElementById('loginEmail').value,
-            password: document.getElementById('loginPassword').value
-        })
-    });
-    const data = await res.json();
-    localStorage.setItem('token', data.token);
-    getProfile();
-}
-
-async function getProfile() {
-    const res = await fetch('/api/profile', {
-        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-    });
-    const data = await res.json();
-    document.getElementById('profile').innerText = JSON.stringify(data, null, 2);
-}
-</script>
 </body>
 </html>

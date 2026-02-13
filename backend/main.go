@@ -4,51 +4,45 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"handbook/config"
 	"handbook/handlers"
 	"handbook/middleware"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Загружаем .env
-	_ = godotenv.Load()
 
-	// Подключаем MongoDB
-	config.ConnectMongo()
+	config.Connect()
 
-	log.Println("MongoDB connected")
+	mux := http.NewServeMux()
 
-	// ======== Статика фронтенда ========
+	mux.HandleFunc("/api/register", handlers.Register)
+	mux.HandleFunc("/api/login", handlers.Login)
+	mux.Handle("/api/profile", middleware.Protect(http.HandlerFunc(handlers.Profile)))
+
 	fs := http.FileServer(http.Dir("./frontend"))
-	http.Handle("/", fs)
+	mux.Handle("/", fs)
 
-	// ======== API ========
-	http.HandleFunc("/api/register", handlers.Register)
-	http.HandleFunc("/api/login", handlers.Login)
-	http.Handle("/api/profile",
-		middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProfile)))
-	http.Handle("/api/progress/update",
-		middleware.AuthMiddleware(http.HandlerFunc(handlers.UpdateProgress)))
-	http.Handle("/api/progress/me",
-		middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProgress)))
-
-	// Используем порт из Render или по умолчанию 8080
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
 	log.Println("Server running on :" + port)
+	log.Fatal(http.ListenAndServe(":"+port, enableCORS(mux)))
+}
 
-	srv := &http.Server{
-		Addr:         ":" + port,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	log.Fatal(srv.ListenAndServe())
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

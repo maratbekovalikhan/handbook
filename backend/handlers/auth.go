@@ -7,47 +7,48 @@ import (
 	"os"
 	"time"
 
+	"handbook/config"
 	"handbook/models"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ===================== Регистрация =====================
 func Register(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
 
-	var user models.User
-	json.NewDecoder(r.Body).Decode(&user)
+	var input models.User
+	json.NewDecoder(r.Body).Decode(&input)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Проверяем, есть ли уже email
 	var existing models.User
-	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existing)
+	err := config.DB.Collection("users").
+		FindOne(ctx, bson.M{"email": input.Email}).
+		Decode(&existing)
+
 	if err == nil {
-		http.Error(w, "Email already exists", http.StatusBadRequest)
+		http.Error(w, "Email already exists", 400)
 		return
 	}
 
-	// Хешируем пароль
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
-	user.Password = string(hashedPassword)
+	hash, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 
-	_, err = userCollection.InsertOne(ctx, user)
+	input.Password = string(hash)
+
+	_, err = config.DB.Collection("users").InsertOne(ctx, input)
 	if err != nil {
-		http.Error(w, "Registration failed", http.StatusInternalServerError)
+		http.Error(w, "Error creating user", 500)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(201)
+	json.NewEncoder(w).Encode(map[string]string{"message": "User created"})
 }
 
-// ===================== Логин =====================
 func Login(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
 
 	var input models.User
 	json.NewDecoder(r.Body).Decode(&input)
@@ -56,45 +57,46 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var user models.User
-	err := userCollection.FindOne(ctx, bson.M{"email": input.Email}).Decode(&user)
+	err := config.DB.Collection("users").
+		FindOne(ctx, bson.M{"email": input.Email}).
+		Decode(&user)
+
 	if err != nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		http.Error(w, "Invalid credentials", 401)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
 	if err != nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		http.Error(w, "Invalid credentials", 401)
 		return
 	}
 
-	// Генерация JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    user.ID.Hex(),
-		"email": user.Email,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"id":  user.ID.Hex(),
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
 	})
 
 	tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"token": tokenString,
-	})
+	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
 }
 
-// ===================== Профиль =====================
-func GetProfile(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
+func Profile(w http.ResponseWriter, r *http.Request) {
 
 	userID := r.Context().Value("userID").(string)
+	objID, _ := primitive.ObjectIDFromHex(userID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	var user models.User
-	err := userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	err := config.DB.Collection("users").
+		FindOne(ctx, bson.M{"_id": objID}).
+		Decode(&user)
+
 	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		http.Error(w, "User not found", 404)
 		return
 	}
 
