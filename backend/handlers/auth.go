@@ -12,11 +12,19 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ======= Геттер коллекции =======
+func getUserCollection() *mongo.Collection {
+	return config.DB.Collection("users")
+}
+
+// ===================== Регистрация =====================
 func Register(w http.ResponseWriter, r *http.Request) {
-	userCollection := config.DB.Collection("users")
+	userCollection := getUserCollection()
 
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
@@ -24,6 +32,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Проверяем, есть ли уже email
 	var existing models.User
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existing)
 	if err == nil {
@@ -31,8 +40,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Хешируем пароль
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	user.Password = string(hashedPassword)
+
+	// Создаем новый ObjectID
+	user.ID = primitive.NewObjectID()
 
 	_, err = userCollection.InsertOne(ctx, user)
 	if err != nil {
@@ -43,8 +56,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// ===================== Логин =====================
 func Login(w http.ResponseWriter, r *http.Request) {
-	userCollection := config.DB.Collection("users")
+	userCollection := getUserCollection()
 
 	var input models.User
 	json.NewDecoder(r.Body).Decode(&input)
@@ -65,8 +79,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Генерация JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    user.ID.Hex(),
+		"id":    user.ID.Hex(), // сохраняем ID как строку в токене
 		"email": user.Email,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
@@ -78,21 +93,29 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ===================== Профиль =====================
 func GetProfile(w http.ResponseWriter, r *http.Request) {
-	userCollection := config.DB.Collection("users")
+	userCollection := getUserCollection()
 
-	userID := r.Context().Value("userID").(string)
+	userIDStr := r.Context().Value("userID").(string)
+
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	var user models.User
-	err := userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	err = userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	user.Password = ""
+	user.Password = "" // чтобы не отдавать пароль
+
 	json.NewEncoder(w).Encode(user)
 }
