@@ -1,14 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Profile</title>
-  <script src="js/profile.js"></script>
+<meta charset="UTF-8">
+<title>Профиль</title>
+<style>
+body { font-family: Arial; background: #f0f0f0; }
+.container { width: 600px; margin: 50px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+h2 { margin-bottom: 20px; }
+p { margin: 5px 0; }
+button { padding: 8px 12px; background: #007bff; color: white; border: none; cursor: pointer; margin-top: 10px; }
+button:hover { background: #0056b3; }
+</style>
 </head>
 <body>
-<h1>Профиль</h1>
+<div class="container">
+<h2>Профиль</h2>
+<p><b>Имя:</b> <span id="name"></span></p>
+<p><b>Email:</b> <span id="email"></span></p>
+<p><b>Прогресс:</b></p>
+<pre id="progress"></pre>
+<button onclick="logout()">Выйти</button>
+</div>
 
-<div id="profile"></div>
+<script>
+async function loadProfile() {
+    const token = localStorage.getItem("token");
+    if(!token) { window.location="login.html"; return; }
 
+    const res = await fetch("/api/profile", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    if(res.ok){
+        const data = await res.json();
+        document.getElementById("name").innerText = data.name;
+        document.getElementById("email").innerText = data.email;
+        document.getElementById("progress").innerText = JSON.stringify(data.progress, null, 2);
+    } else {
+        window.location = "login.html";
+    }
+}
+
+function logout() {
+    localStorage.removeItem("token");
+    window.location="login.html";
+}
+
+loadProfile();
+</script>
 </body>
 </html>

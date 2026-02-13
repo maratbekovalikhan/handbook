@@ -1,20 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Login</title>
+<title>Вход</title>
+<style>
+body { font-family: Arial; background: #f0f0f0; }
+.container { width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+input { width: 100%; padding: 10px; margin: 10px 0; }
+button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+button:hover { background: #0056b3; }
+.message { color: red; }
+</style>
 </head>
 <body>
-
-<h1>Login</h1>
-
+<div class="container">
+<h2>Вход</h2>
+<div class="message" id="message"></div>
 <input type="email" id="email" placeholder="Email">
-<br><br>
-<input type="password" id="password" placeholder="Password">
-<br><br>
+<input type="password" id="password" placeholder="Пароль">
+<button onclick="login()">Войти</button>
+<p>Нет аккаунта? <a href="register.html">Регистрация</a></p>
+</div>
 
-<button onclick="login()">Login</button>
+<script>
+async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const msg = document.getElementById("message");
 
-<script src="js/auth.js"></script>
+    const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, password})
+    });
+
+    if(res.ok) {
+        const data = await res.json();
+        localStorage.setItem("token", data.token);
+        msg.style.color = "green";
+        msg.innerText = "Вход успешен! Переход на профиль...";
+        setTimeout(()=>window.location="profile.html", 1000);
+    } else {
+        const text = await res.text();
+        msg.style.color = "red";
+        msg.innerText = text;
+    }
+}
+</script>
 </body>
 </html>
