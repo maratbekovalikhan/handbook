@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Геттер коллекции пользователей
+// Универсальная функция для получения коллекции пользователей
 func getUserCollection() *mongo.Collection {
 	return config.DB.Collection("users")
 }

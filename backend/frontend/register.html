@@ -1,51 +1,41 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Регистрация</title>
-<style>
-body { font-family: Arial; background: #f0f0f0; }
-.container { width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-input { width: 100%; padding: 10px; margin: 10px 0; }
-button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
-button:hover { background: #0056b3; }
-.message { color: red; }
-</style>
+  <meta charset="UTF-8">
+  <title>Регистрация</title>
 </head>
 <body>
-<div class="container">
-<h2>Регистрация</h2>
-<div class="message" id="message"></div>
-<input type="text" id="name" placeholder="Имя">
-<input type="email" id="email" placeholder="Email">
-<input type="password" id="password" placeholder="Пароль">
-<button onclick="register()">Зарегистрироваться</button>
-<p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
-</div>
+  <h1>Регистрация</h1>
+  <form id="registerForm">
+    <input type="text" id="name" placeholder="Имя" required><br>
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Пароль" required><br>
+    <button type="submit">Зарегистрироваться</button>
+  </form>
 
-<script>
-async function register() {
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const msg = document.getElementById("message");
+  <script>
+    const API = "https://handbook-backend-ah0j.onrender.com"; // твой бэкенд
 
-    const res = await fetch("/api/register", {
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch(`${API}/api/register`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name, email, password})
-    });
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
 
-    if(res.status === 201) {
-        msg.style.color = "green";
-        msg.innerText = "Регистрация успешна! Переход на логин...";
-        setTimeout(()=>window.location="login.html", 1500);
-    } else {
+      if (res.ok) {
+        alert("Регистрация успешна!");
+        window.location.href = "login.html";
+      } else {
         const text = await res.text();
-        msg.style.color = "red";
-        msg.innerText = text;
-    }
-}
-</script>
+        alert("Ошибка: " + text);
+      }
+    });
+  </script>
 </body>
 </html>

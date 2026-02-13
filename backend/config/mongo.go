@@ -18,7 +18,7 @@ func ConnectMongo() {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
-		log.Fatal("MongoDB connection error:", err)
+		log.Fatal(err)
 	}
 
 	DB = client.Database("handbook")

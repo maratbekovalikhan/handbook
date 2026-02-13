@@ -98,7 +98,6 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Password = "" // чтобы не отдавать пароль
-
+	user.Password = ""
 	json.NewEncoder(w).Encode(user)
 }
