@@ -13,17 +13,25 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load()
+	_ = godotenv.Load() // загружаем .env
+
+	log.Println("MONGO_URI:", os.Getenv("MONGO_URI"))
 
 	config.ConnectMongo()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Handbook API is running!"))
-	})
+	// ======== Статика фронтенда ========
+	fs := http.FileServer(http.Dir("./frontend"))
+	http.Handle("/", fs)
 
+	// ======== API ========
 	http.HandleFunc("/api/register", handlers.Register)
 	http.HandleFunc("/api/login", handlers.Login)
-	http.Handle("/api/profile", middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProfile)))
+	http.Handle("/api/progress/update",
+		middleware.AuthMiddleware(http.HandlerFunc(handlers.UpdateProgress)))
+	http.Handle("/api/progress/me",
+		middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProgress)))
+	http.Handle("/api/profile",
+		middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProfile)))
 
 	port := os.Getenv("PORT")
 	if port == "" {
