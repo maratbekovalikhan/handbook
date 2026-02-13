@@ -10,25 +10,17 @@ import (
 	"handbook/models"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// ======= Геттер коллекции =======
-func getUserCollection() *mongo.Collection {
-	return config.DB.Collection("users")
-}
-
-// ===================== Структуры для прогресса =====================
 type ProgressUpdate struct {
-	Course    string `json:"course"` // html, css, javascript, go, postgresql
+	Course    string `json:"course"`
 	Theory    bool   `json:"theory"`
 	Examples  bool   `json:"examples"`
 	TestScore int    `json:"testScore"`
 }
 
-// ===================== Обновление прогресса =====================
 func UpdateProgress(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
+	userCollection := config.DB.Collection("users")
 
 	userID := r.Context().Value("userID").(string)
 
@@ -38,7 +30,6 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Получаем старый прогресс
 	var user models.User
 	err := userCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
@@ -50,7 +41,6 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 		user.Progress = make(map[string]models.CourseProgress)
 	}
 
-	// Обновляем прогресс по курсу
 	c := user.Progress[update.Course]
 	if update.Theory {
 		c.Theory = true
@@ -74,9 +64,8 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user.Progress)
 }
 
-// ===================== Получение прогресса =====================
 func GetProgress(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
+	userCollection := config.DB.Collection("users")
 
 	userID := r.Context().Value("userID").(string)
 

@@ -12,18 +12,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ======= Геттер коллекции =======
-func getUserCollection() *mongo.Collection {
-	return config.DB.Collection("users")
-}
-
-// ===================== Регистрация =====================
 func Register(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
+	userCollection := config.DB.Collection("users")
 
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
@@ -31,7 +24,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Проверяем, есть ли уже email
 	var existing models.User
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existing)
 	if err == nil {
@@ -39,7 +31,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Хешируем пароль
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	user.Password = string(hashedPassword)
 
@@ -52,9 +43,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// ===================== Логин =====================
 func Login(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
+	userCollection := config.DB.Collection("users")
 
 	var input models.User
 	json.NewDecoder(r.Body).Decode(&input)
@@ -75,7 +65,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Генерация JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    user.ID.Hex(),
 		"email": user.Email,
@@ -89,9 +78,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ===================== Профиль =====================
 func GetProfile(w http.ResponseWriter, r *http.Request) {
-	userCollection := getUserCollection()
+	userCollection := config.DB.Collection("users")
 
 	userID := r.Context().Value("userID").(string)
 
@@ -105,7 +93,6 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Password = "" // чтобы не отдавать пароль
-
+	user.Password = ""
 	json.NewEncoder(w).Encode(user)
 }
