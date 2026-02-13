@@ -1,111 +1,112 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Handbook</title>
-<link rel="stylesheet" href="css/style.css">
+<title>Handbook Auth</title>
+<style>
+body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin:0;}
+.container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 350px; }
+h2 { text-align: center; margin-bottom: 20px; }
+input { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; }
+button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+button:hover { background: #0056b3; }
+a { display: block; text-align: center; margin-top: 10px; text-decoration: none; color: #007bff; }
+a:hover { text-decoration: underline; }
+#profile { display:none; }
+</style>
 </head>
 <body>
-  <header class="header">
-  <div class="logo">Handbook</div>
-
-  <nav>
-    <a href="/index.html">Главная</a>
-    <a href="/courses/html/theory.html">HTML</a>
-    <a href="/courses/css/theory.html">CSS</a>
-    <a href="/courses/javascript/theory.html">JavaScript</a>
-    <a href="/courses/go/theory.html">Go</a>
-    <a href="/courses/postgresql/theory.html">PostgreSQL</a>
-  </nav>
-
-  <div class="auth-links" id="authLinks">
-    <a href="/login.html">Login</a>
-    <a href="/register.html">Register</a>
+<div class="container">
+  <div id="auth">
+    <h2>Регистрация</h2>
+    <input type="text" id="name" placeholder="Имя">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Пароль">
+    <button onclick="register()">Зарегистрироваться</button>
+    <a href="#" onclick="showLogin()">Уже есть аккаунт? Войти</a>
   </div>
-</header>
 
-<h1 class="title">Учите код с нами 🚀</h1>
+  <div id="login" style="display:none;">
+    <h2>Логин</h2>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Пароль">
+    <button onclick="login()">Войти</button>
+    <a href="#" onclick="showAuth()">Нет аккаунта? Зарегистрироваться</a>
+  </div>
 
-<div class="courses-grid">
-
-<div class="course-card">
-  <h2>HTML</h2>
-  <p>Изучите основы веб-разметки</p>
-
-  <a href="courses/html/theory.html" class="main-btn">
-    Начать курс
-  </a>
-
-  <div class="course-links">
-    <a href="courses/html/examples.html">Примеры</a>
-    <a href="courses/html/tags.html">Теги</a>
-    <a href="courses/html/articles.html">Статьи</a>
+  <div id="profile">
+    <h2>Профиль</h2>
+    <p id="profileInfo"></p>
+    <button onclick="logout()">Выйти</button>
   </div>
 </div>
 
-<div class="course-card">
-  <h2>CSS</h2>
-  <p>Стилизация и дизайн сайтов</p>
+<script>
+const API = "https://handbook-backend-ah0j.onrender.com/api"; // Твой бэкенд
 
-  <a href="courses/html/theory.html" class="main-btn">
-    Начать курс
-  </a>
+function showLogin() { document.getElementById("auth").style.display="none"; document.getElementById("login").style.display="block"; }
+function showAuth() { document.getElementById("auth").style.display="block"; document.getElementById("login").style.display="none"; }
 
-  <div class="course-links">
-    <a href="courses/html/examples.html">Примеры</a>
-    <a href="courses/html/selectors.html">Теги</a>
-    <a href="courses/html/articles.html">Статьи</a>
-  </div>
-</div>
+async function register() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-<div class="course-card">
-  <h2>JavaScript</h2>
-  <p>Добавьте интерактивность</p>
+    const res = await fetch(`${API}/register`, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({name,email,password})
+    });
 
-  <a href="courses/html/theory.html" class="main-btn">
-    Начать курс
-  </a>
+    if(res.ok){ alert("Регистрация успешна"); showLogin(); }
+    else{ alert("Ошибка регистрации"); }
+}
 
-  <div class="course-links">
-    <a href="courses/html/examples.html">Примеры</a>
-    <a href="courses/html/tags.html">Теги</a>
-    <a href="courses/html/articles.html">Статьи</a>
-  </div>
-</div>
+async function login() {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
 
-<div class="course-card">
-  <h2>Go</h2>
-  <p>Бэкэнд рахработка на Go</p>
+    const res = await fetch(`${API}/login`, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({email,password})
+    });
 
-  <a href="courses/html/theory.html" class="main-btn">
-    Начать курс
-  </a>
+    if(res.ok){
+        const data = await res.json();
+        localStorage.setItem("token", data.token);
+        showProfile();
+    } else {
+        alert("Неверные данные");
+    }
+}
 
-  <div class="course-links">
-    <a href="courses/html/examples.html">Примеры</a>
-    <a href="courses/html/tags.html">Теги</a>
-    <a href="courses/html/articles.html">Статьи</a>
-  </div>
-</div>
+async function showProfile() {
+    const token = localStorage.getItem("token");
+    if(!token) return;
 
+    const res = await fetch(`${API}/profile`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+    if(res.ok){
+        const user = await res.json();
+        document.getElementById("auth").style.display="none";
+        document.getElementById("login").style.display="none";
+        document.getElementById("profile").style.display="block";
+        document.getElementById("profileInfo").innerText=`Имя: ${user.name}\nEmail: ${user.email}`;
+    } else {
+        alert("Не удалось получить профиль");
+    }
+}
 
-<div class="course-card">
-  <h2>PostgreSQL</h2>
-  <p>Работа с базами данных</p>
+function logout() {
+    localStorage.removeItem("token");
+    document.getElementById("profile").style.display="none";
+    document.getElementById("auth").style.display="block";
+}
 
-  <a href="courses/html/theory.html" class="main-btn">
-    Начать курс
-  </a>
-
-  <div class="course-links">
-    <a href="courses/html/examples.html">Примеры</a>
-    <a href="courses/html/tags.html">Теги</a>
-    <a href="courses/html/articles.html">Статьи</a>
-  </div>
-</div>
-
-</div>
-
-<script src="js/progress.js"></script>
+// Если токен уже есть, показываем профиль
+if(localStorage.getItem("token")) showProfile();
+</script>
 </body>
 </html>
