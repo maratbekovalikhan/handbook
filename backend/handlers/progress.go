@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+// ===================== Структуры для прогресса =====================
 type ProgressUpdate struct {
 	Course    string `json:"course"` // html, css, javascript, go, postgresql
 	Theory    bool   `json:"theory"`
@@ -18,16 +19,13 @@ type ProgressUpdate struct {
 	TestScore int    `json:"testScore"`
 }
 
+// ===================== Обновление прогресса =====================
 func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 	userCollection := getUserCollection()
-
 	userID := r.Context().Value("userID").(string)
 
 	var update ProgressUpdate
-	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&update)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -43,6 +41,7 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 		user.Progress = make(map[string]models.CourseProgress)
 	}
 
+	// Обновляем прогресс по курсу
 	c := user.Progress[update.Course]
 	if update.Theory {
 		c.Theory = true
@@ -66,9 +65,9 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user.Progress)
 }
 
+// ===================== Получение прогресса =====================
 func GetProgress(w http.ResponseWriter, r *http.Request) {
 	userCollection := getUserCollection()
-
 	userID := r.Context().Value("userID").(string)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

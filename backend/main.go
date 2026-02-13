@@ -17,11 +17,11 @@ func main() {
 
 	config.ConnectMongo()
 
-	// ======== Статика фронтенда ========
+	// ===== Статика фронтенда =====
 	fs := http.FileServer(http.Dir("./frontend"))
 	http.Handle("/", fs)
 
-	// ======== API ========
+	// ===== API =====
 	http.HandleFunc("/api/register", handlers.Register)
 	http.HandleFunc("/api/login", handlers.Login)
 	http.Handle("/api/profile", middleware.AuthMiddleware(http.HandlerFunc(handlers.GetProfile)))
