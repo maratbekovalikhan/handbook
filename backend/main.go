@@ -13,18 +13,20 @@ import (
 )
 
 func main() {
-	// Загружаем .env (локально)
-	_ = godotenv.Load()
+	// Загружаем .env
+	if err := godotenv.Load(); err != nil {
+		log.Println(".env file not found, using environment variables")
+	}
 
-	// Проверка MONGO_URI
+	// Логируем URI для проверки
 	log.Println("MONGO_URI:", os.Getenv("MONGO_URI"))
 
-	// Подключение к MongoDB
+	// Подключаем MongoDB
 	config.ConnectMongo()
 
 	// ======== Раздача фронтенда ========
 	fs := http.FileServer(http.Dir("./frontend"))
-	http.Handle("/", fs) // Любой запрос к / будет отдавать файлы из frontend
+	http.Handle("/", http.StripPrefix("/", fs)) // важно для корректной обработки вложенных путей
 
 	// ======== API ========
 	http.HandleFunc("/api/register", handlers.Register)
@@ -36,7 +38,7 @@ func main() {
 	// ======== Порт ========
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // Локально по умолчанию
+		port = "8080" // локально
 	}
 
 	log.Println("Server running on :" + port)
