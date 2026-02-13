@@ -7,7 +7,6 @@ import (
 
 	"handbook/config"
 	"handbook/handlers"
-	"handbook/middleware"
 )
 
 func main() {
@@ -16,9 +15,13 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/register", handlers.Register)
-	mux.HandleFunc("/api/login", handlers.Login)
-	mux.Handle("/api/profile", middleware.Protect(http.HandlerFunc(handlers.Profile)))
+	mux.HandleFunc("/api/courses", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			handlers.CreateCourse(w, r)
+		} else if r.Method == "GET" {
+			handlers.GetCourses(w, r)
+		}
+	})
 
 	fs := http.FileServer(http.Dir("./frontend"))
 	mux.Handle("/", fs)
@@ -36,7 +39,7 @@ func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 
 		if r.Method == "OPTIONS" {
