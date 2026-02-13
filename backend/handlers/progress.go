@@ -6,26 +6,28 @@ import (
 	"net/http"
 	"time"
 
-	"handbook/config"
 	"handbook/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type ProgressUpdate struct {
-	Course    string `json:"course"`
+	Course    string `json:"course"` // html, css, javascript, go, postgresql
 	Theory    bool   `json:"theory"`
 	Examples  bool   `json:"examples"`
 	TestScore int    `json:"testScore"`
 }
 
 func UpdateProgress(w http.ResponseWriter, r *http.Request) {
-	userCollection := config.DB.Collection("users")
+	userCollection := getUserCollection()
 
 	userID := r.Context().Value("userID").(string)
 
 	var update ProgressUpdate
-	json.NewDecoder(r.Body).Decode(&update)
+	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -65,7 +67,7 @@ func UpdateProgress(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetProgress(w http.ResponseWriter, r *http.Request) {
-	userCollection := config.DB.Collection("users")
+	userCollection := getUserCollection()
 
 	userID := r.Context().Value("userID").(string)
 
