@@ -5,7 +5,7 @@
     <title>Add Course - Handbook</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 40px 20px; box-sizing: border-box; }
-        .form-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .form-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
         h1 { margin-top: 0; color: #333; font-size: 24px; text-align: center; }
         .input-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
@@ -16,6 +16,9 @@
         .btn-submit:hover { background-color: #218838; }
         .back-link { display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none; font-size: 14px; }
         .back-link:hover { text-decoration: underline; }
+        .section-group { border: 1px solid #eee; padding: 20px; margin-bottom: 20px; border-radius: 8px; background: #fafafa; position: relative; }
+        .btn-remove { position: absolute; top: 15px; right: 15px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-remove:hover { background: #c82333; }
     </style>
 </head>
 <body>
@@ -43,11 +46,57 @@
             <label for="general_info">General Information</label>
             <textarea id="general_info" placeholder="Additional details..."></textarea>
         </div>
+
+        <div id="sections-container">
+            <h3>Course Sections</h3>
+            <p style="color:#666; font-size:0.9em; margin-bottom:15px;">Add lessons step-by-step.</p>
+            <!-- Sections will be added here -->
+        </div>
+        <button type="button" onclick="addSectionField()" style="margin-bottom: 25px; background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; display:flex; align-items:center; gap:5px;">
+            <span style="font-size:18px; font-weight:bold;">+</span> Add Section
+        </button>
+
         <button type="submit" class="btn-submit">Save Course</button>
     </form>
     <a href="index.html" class="back-link">← Return Home</a>
 </div>
 
-<script src="script.js"></script>
+<script>
+    function addSectionField() {
+        const container = document.getElementById('sections-container');
+        const sections = container.getElementsByClassName('section-group');
+        const count = sections.length + 1;
+
+        const div = document.createElement('div');
+        div.className = 'section-group';
+        div.innerHTML = `
+            <button type="button" class="btn-remove" onclick="removeSection(this)">Remove</button>
+            <h4 style="margin-top:0; color:#007bff;">Section <span class="section-num">${count}</span></h4>
+            <div class="input-group">
+                <label>Section Title</label>
+                <input type="text" class="section-title" placeholder="e.g. Introduction" required>
+            </div>
+            <div class="input-group">
+                <label>Information</label>
+                <textarea class="section-content" required placeholder="Write the detailed information for this section here..."></textarea>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeSection(btn) {
+        btn.closest('.section-group').remove();
+        updateSectionNumbers();
+    }
+
+    function updateSectionNumbers() {
+        const container = document.getElementById('sections-container');
+        const sections = container.getElementsByClassName('section-group');
+        Array.from(sections).forEach((section, index) => {
+            section.querySelector('.section-num').innerText = index + 1;
+        });
+    }
+</script>
+<script src="script.js?v=3"></script>
 </body>
 </html>

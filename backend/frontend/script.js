@@ -11,6 +11,31 @@ if (form) {
         const photo_url = document.getElementById("photo_url").value;
         const general_info = document.getElementById("general_info").value;
 
+        // Collect sections
+        const sections = [];
+        const sectionGroups = document.querySelectorAll('.section-group');
+        console.log("Found section groups:", sectionGroups.length);
+
+        sectionGroups.forEach((group, index) => {
+            const titleInput = group.querySelector('.section-title');
+            const contentInput = group.querySelector('.section-content');
+            
+            console.log(`Processing section ${index}:`, titleInput?.value, contentInput?.value);
+
+            if (titleInput && contentInput) {
+                sections.push({
+                    id: 'sect-' + Date.now() + '-' + Math.floor(Math.random() * 10000),
+                    title: titleInput.value,
+                    content: contentInput.value,
+                    order: index + 1
+                });
+            }
+        });
+
+        console.log("Sending payload:", JSON.stringify({ 
+            title, level, description, photo_url, general_info, sections 
+        }, null, 2));
+
         const token = localStorage.getItem('token');
         await fetch("/api/courses", {
             method: "POST",
@@ -18,7 +43,9 @@ if (form) {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + token
             },
-            body: JSON.stringify({ title, level, description, photo_url, general_info })
+            body: JSON.stringify({ 
+                title, level, description, photo_url, general_info, sections 
+            })
         });
 
         window.location.href = "index.html";
