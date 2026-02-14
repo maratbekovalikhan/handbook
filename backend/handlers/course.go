@@ -100,3 +100,58 @@ func GetCourse(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(course)
 }
+
+func DeleteCourse(w http.ResponseWriter, r *http.Request) {
+	// Get User ID from context
+	userID := r.Context().Value("userID").(string)
+	userObjID, _ := primitive.ObjectIDFromHex(userID)
+
+	// Get Course ID from URL
+	courseIDStr := r.URL.Query().Get("id")
+	if courseIDStr == "" {
+		http.Error(w, "Missing id", 400)
+		return
+	}
+	courseObjID, _ := primitive.ObjectIDFromHex(courseIDStr)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// 1. Fetch User to check Role
+	var user models.User
+	err := config.DB.Collection("users").FindOne(ctx, bson.M{"_id": userObjID}).Decode(&user)
+	if err != nil {
+		http.Error(w, "User not found", 401)
+		return
+	}
+
+	// 2. Fetch Course to check Author
+	var course models.Course
+	err = config.DB.Collection("courses").FindOne(ctx, bson.M{"_id": courseObjID}).Decode(&course)
+	if err != nil {
+		http.Error(w, "Course not found", 404)
+		return
+	}
+
+	// 3. Authorization Check
+	isAuthor := course.AuthorID == userObjID
+	isAdmin := user.Role == "admin"
+
+	if !isAuthor && !isAdmin {
+		http.Error(w, "Forbidden: You don't have permission to delete this course", 403)
+		return
+	}
+
+	// 4. Delete Course
+	_, err = config.DB.Collection("courses").DeleteOne(ctx, bson.M{"_id": courseObjID})
+	if err != nil {
+		http.Error(w, "Error deleting course", 500)
+		return
+	}
+
+	// Optional: Delete related progress and ratings
+	config.DB.Collection("progress").DeleteMany(ctx, bson.M{"course_id": courseObjID})
+	config.DB.Collection("ratings").DeleteMany(ctx, bson.M{"course_id": courseObjID})
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Course deleted successfully"})
+}
