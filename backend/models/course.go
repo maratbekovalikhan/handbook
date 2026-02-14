@@ -16,7 +16,9 @@ type Course struct {
 	Description string             `bson:"description" json:"description"`
 	PhotoURL    string             `bson:"photo_url" json:"photo_url"`
 	GeneralInfo string             `bson:"general_info" json:"general_info"`
-	AuthorID    primitive.ObjectID `bson:"author_id" json:"author_id"`
-	AuthorName  string             `bson:"author_name" json:"author_name"`
-	Sections    []Section          `bson:"sections" json:"sections"`
-}
+		AuthorID      primitive.ObjectID `bson:"author_id" json:"author_id"`
+		AuthorName    string             `bson:"author_name" json:"author_name"`
+		Sections      []Section          `bson:"sections" json:"sections"`
+		AverageRating float64            `bson:"average_rating" json:"average_rating"`
+		RatingCount   int                `bson:"rating_count" json:"rating_count"`
+	}
