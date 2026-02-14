@@ -15,7 +15,14 @@ import (
 
 func CreateCourse(w http.ResponseWriter, r *http.Request) {
 	var course models.Course
-	json.NewDecoder(r.Body).Decode(&course)
+	if err := json.NewDecoder(r.Body).Decode(&course); err != nil {
+		http.Error(w, "Invalid input JSON", 400)
+		return
+	}
+
+	if course.Sections == nil {
+		course.Sections = []models.Section{}
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

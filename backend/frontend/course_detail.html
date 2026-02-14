@@ -70,10 +70,125 @@
                     <h3>General Information</h3>
                     <p>${course.general_info || 'No additional information'}</p>
                 </div>
+
+                <div class="section" id="curriculumSection">
+                    <h3>Curriculum</h3>
+                    <div id="enrollmentStatus" style="margin-bottom: 20px;">Checking status...</div>
+                    <ul id="sectionList" style="list-style: none; padding: 0;"></ul>
+                </div>
             `;
+            
+            checkEnrollment(course);
+
         } catch (err) {
             document.getElementById('courseContent').innerHTML = `<p>Error: ${err.message}</p>`;
         }
+    }
+
+    async function checkEnrollment(course) {
+        const token = localStorage.getItem('token');
+        const statusDiv = document.getElementById('enrollmentStatus');
+        const listDiv = document.getElementById('sectionList');
+
+        if (!token) {
+            statusDiv.innerHTML = '<p>Please <a href="login.html">login</a> to enroll.</p>';
+            renderSections(course.sections || [], [], false);
+            return;
+        }
+
+        const res = await fetch(`/api/progress?course_id=${course.id || course._id}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (!data.started) {
+            statusDiv.innerHTML = `<button onclick="enroll('${course.id || course._id}')" style="background:#007bff; color:white; border:none; padding:10px 20px; border-radius:5px; font-size:16px; cursor:pointer;">Start Learning</button>`;
+            renderSections(course.sections || [], [], false);
+        } else {
+            const progressText = data.is_finished ? 
+                '<span style="color:green; font-weight:bold;">Course Completed! 🎉</span>' : 
+                `<span style="color:#666;">Progress: ${data.completed_section_ids.length} / ${course.sections ? course.sections.length : 0} steps</span>`;
+            
+            statusDiv.innerHTML = progressText;
+            renderSections(course.sections || [], data.completed_section_ids, true);
+        }
+    }
+
+    async function enroll(courseId) {
+        const token = localStorage.getItem('token');
+        await fetch('/api/enroll', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ course_id: courseId })
+        });
+        location.reload();
+    }
+
+    function renderSections(sections, completedIds, isEnrolled) {
+        const list = document.getElementById('sectionList');
+        if (!sections || sections.length === 0) {
+            list.innerHTML = '<li>No sections added yet.</li>';
+            return;
+        }
+
+        // Sort by order just in case
+        sections.sort((a, b) => a.order - b.order);
+
+        let html = '';
+        let previousCompleted = true; // First item is unlocked by default if enrolled
+
+        sections.forEach((s, index) => {
+            const isCompleted = completedIds.includes(s.id);
+            const isLocked = !isEnrolled || (!isCompleted && !previousCompleted);
+            
+            // Logic: You can access if it's completed OR if it's the immediate next one (previous one was completed)
+            // But wait, "Step by Step" usually means you can access current if previous is done.
+            const canAccess = isEnrolled && (isCompleted || previousCompleted);
+
+            let statusIcon = '🔒';
+            let action = '<span style="color:#999; font-size:0.9em;">Locked</span>';
+            let rowStyle = 'background: #f8f9fa; color: #999;';
+
+            if (isCompleted) {
+                statusIcon = '✅';
+                action = `<a href="section.html?course_id=${getCourseId()}&section_id=${s.id}" style="color:green; font-weight:bold;">Review</a>`;
+                rowStyle = 'background: #e8f5e9; border-left: 4px solid green;';
+            } else if (canAccess) {
+                statusIcon = '▶️';
+                action = `<a href="section.html?course_id=${getCourseId()}&section_id=${s.id}" style="color:#007bff; font-weight:bold;">Start</a>`;
+                rowStyle = 'background: white; border-left: 4px solid #007bff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+            }
+
+            if (!isEnrolled) {
+                 rowStyle = 'background: #f8f9fa; opacity: 0.7;';
+                 statusIcon = '🔒';
+                 action = 'Enroll to start';
+            }
+
+            html += `
+                <li style="padding: 15px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; ${rowStyle}">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span>${statusIcon}</span>
+                        <div>
+                            <div style="font-weight:bold;">${index + 1}. ${s.title}</div>
+                        </div>
+                    </div>
+                    <div>${action}</div>
+                </li>
+            `;
+
+            if (!isCompleted) previousCompleted = false;
+        });
+
+        list.innerHTML = html;
+    }
+    
+    function getCourseId() {
+        return new URLSearchParams(window.location.search).get('id');
     }
 
     loadCourseDetail();

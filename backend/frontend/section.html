@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Learning - Handbook</title>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f4f7f6; }
+    .lesson-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .content { line-height: 1.8; color: #444; margin: 30px 0; font-size: 1.1em; white-space: pre-wrap; }
+    .btn-complete { background-color: #28a745; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: block; width: 100%; font-weight: bold; }
+    .btn-complete:hover { background-color: #218838; }
+    .btn-disabled { background-color: #ccc; cursor: not-allowed; }
+    .nav-top { display: flex; justify-content: space-between; margin-bottom: 20px; }
+    a { text-decoration: none; color: #007bff; }
+</style>
+</head>
+<body>
+
+<div class="nav-top">
+    <a href="#" id="backLink">← Back to Course</a>
+    <span id="progressInfo">Step ? of ?</span>
+</div>
+
+<div class="lesson-card">
+    <h1 id="lessonTitle">Loading...</h1>
+    <div id="lessonContent" class="content"></div>
+    <button id="completeBtn" class="btn-complete" onclick="completeSection()">Mark as Completed</button>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('course_id');
+    const sectionId = urlParams.get('section_id');
+    const token = localStorage.getItem('token');
+
+    if (!token) window.location.href = 'login.html';
+
+    async function loadSection() {
+        // Fetch course data to find the specific section
+        const res = await fetch(`/api/course?id=${courseId}`);
+        const course = await res.json();
+        
+        const section = course.sections ? course.sections.find(s => s.id === sectionId) : null;
+        
+        console.log("Searching for section:", sectionId);
+        console.log("Available sections:", course.sections);
+
+        if (!section) {
+            alert("Section not found. Debug info: " + sectionId + " not in " + JSON.stringify(course.sections?.map(s=>s.id)));
+            return;
+        }
+
+        document.getElementById('backLink').href = `course_detail.html?id=${courseId}`;
+        document.getElementById('lessonTitle').innerText = section.title;
+        document.getElementById('lessonContent').innerText = section.content; // In real app, use innerHTML with sanitizer
+        document.getElementById('progressInfo').innerText = `Step ${section.order} of ${course.sections.length}`;
+
+        // Check if already completed
+        const progRes = await fetch(`/api/progress?course_id=${courseId}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const progress = await progRes.json();
+        
+        if (progress.completed_section_ids && progress.completed_section_ids.includes(sectionId)) {
+            const btn = document.getElementById('completeBtn');
+            btn.innerText = "Completed ✅";
+            btn.classList.add('btn-disabled');
+            btn.disabled = true;
+        }
+    }
+
+    async function completeSection() {
+        const btn = document.getElementById('completeBtn');
+        btn.innerText = "Saving...";
+        
+        const res = await fetch('/api/complete_section', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token 
+            },
+            body: JSON.stringify({ course_id: courseId, section_id: sectionId })
+        });
+
+        if (res.ok) {
+            btn.innerText = "Completed ✅";
+            btn.classList.add('btn-disabled');
+            btn.disabled = true;
+            
+            // Redirect back to course detail after small delay
+            setTimeout(() => {
+                window.location.href = `course_detail.html?id=${courseId}`;
+            }, 1000);
+        } else {
+            alert("Error completing section");
+            btn.innerText = "Mark as Completed";
+        }
+    }
+
+    loadSection();
+</script>
+</body>
+</html>

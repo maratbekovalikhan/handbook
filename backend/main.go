@@ -41,6 +41,11 @@ func main() {
 		}
 	})
 
+	// API Progress
+	mux.HandleFunc("/api/enroll", handlers.AuthMiddleware(handlers.Enroll))
+	mux.HandleFunc("/api/progress", handlers.AuthMiddleware(handlers.GetProgress))
+	mux.HandleFunc("/api/complete_section", handlers.AuthMiddleware(handlers.CompleteSection))
+
 	// API auth
 	mux.HandleFunc("/api/register", handlers.Register)
 	mux.HandleFunc("/api/login", handlers.Login)
