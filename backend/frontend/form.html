@@ -1,17 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Add Course</title>
+    <meta charset="UTF-8">
+    <title>Add Course - Handbook</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 40px 20px; box-sizing: border-box; }
+        .form-container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h1 { margin-top: 0; color: #333; font-size: 24px; text-align: center; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s; font-family: inherit; }
+        input:focus, textarea:focus { border-color: #007bff; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .btn-submit:hover { background-color: #218838; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
 
-<h1>Add Course</h1>
-
-<form id="courseForm">
-    <input type="text" id="title" placeholder="Course title" required>
-    <input type="text" id="level" placeholder="Level" required>
-    <button type="submit">Save</button>
-</form>
+<div class="form-container">
+    <h1>New Course</h1>
+    <form id="courseForm">
+        <div class="input-group">
+            <label for="title">Course Title</label>
+            <input type="text" id="title" placeholder="e.g.: React for Beginners" required>
+        </div>
+        <div class="input-group">
+            <label for="level">Difficulty Level</label>
+            <input type="text" id="level" placeholder="e.g.: Intermediate" required>
+        </div>
+        <div class="input-group">
+            <label for="photo_url">Photo URL</label>
+            <input type="url" id="photo_url" placeholder="https://example.com/image.jpg">
+        </div>
+        <div class="input-group">
+            <label for="description">Short Description</label>
+            <textarea id="description" placeholder="What is this course about?"></textarea>
+        </div>
+        <div class="input-group">
+            <label for="general_info">General Information</label>
+            <textarea id="general_info" placeholder="Additional details..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit">Save Course</button>
+    </form>
+    <a href="index.html" class="back-link">← Return Home</a>
+</div>
 
 <script src="script.js"></script>
 </body>

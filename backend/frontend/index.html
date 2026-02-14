@@ -1,17 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Courses</title>
+<meta charset="UTF-8">
+<title>Handbook</title>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f4f7f6; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .nav-links a { margin-left: 15px; text-decoration: none; color: #007bff; font-weight: 500; }
+    h1 { color: #333; margin: 0; }
+    .btn-add { display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: background 0.3s; margin-bottom: 30px; }
+    .btn-add:hover { background-color: #218838; }
+    .course-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .course-table th, .course-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+    .course-table th { background-color: #007bff; color: white; }
+    .course-table tr:hover { background-color: #f9f9f9; }
+    .level-badge { background: #e9ecef; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; color: #495057; font-weight: 500; }
+</style>
 </head>
 <body>
 
-<h1>Courses</h1>
+<div class="navbar">
+    <h1>Handbook</h1>
+    <div class="nav-links" id="navLinks">
+        <!-- Will be filled via JS -->
+    </div>
+</div>
+
+<div id="adminActions" style="display: none; margin-bottom: 20px;">
+    <a href="form.html" class="btn-add">➕ Add New Course</a>
+</div>
 
 <div id="courses"></div>
 
-<br>
-<a href="form.html">Add Course</a>
+<script src="js/main.js"></script>
+<script>
+    function updateNavbar() {
+        const token = localStorage.getItem('token');
+        const navLinks = document.getElementById('navLinks');
+        const adminActions = document.getElementById('adminActions');
 
-<script src="script.js"></script>
+        if (token) {
+            navLinks.innerHTML = `
+                <a href="profile.html">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            `;
+            adminActions.style.display = 'block';
+        } else {
+            navLinks.innerHTML = `
+                <a href="login.html">Login</a>
+                <a href="register.html">Register</a>
+            `;
+            adminActions.style.display = 'none';
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        location.reload();
+    }
+
+    updateNavbar();
+</script>
 </body>
 </html>
