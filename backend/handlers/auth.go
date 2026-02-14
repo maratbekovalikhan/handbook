@@ -35,6 +35,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	input.Password = string(hash)
+	input.Role = "user"
 
 	_, err = config.DB.Collection("users").InsertOne(ctx, input)
 	if err != nil {

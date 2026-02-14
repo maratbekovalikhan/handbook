@@ -36,6 +36,8 @@ func main() {
 	mux.HandleFunc("/api/course", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			handlers.GetCourse(w, r)
+		} else if r.Method == "DELETE" {
+			handlers.AuthMiddleware(handlers.DeleteCourse)(w, r)
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
