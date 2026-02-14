@@ -8,8 +8,30 @@ import (
 	"handbook/config"
 	"handbook/handlers"
 
+	_ "handbook/docs"
+
 	"github.com/joho/godotenv"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+// @title Handbook API
+// @version 1.0
+// @description This is a handbook platform backend server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /api
+
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
 
 func main() {
 	// ==== Load .env ====
@@ -59,6 +81,9 @@ func main() {
 
 	// API Certificate
 	mux.HandleFunc("/api/certificate", handlers.AuthMiddleware(handlers.GenerateCertificate))
+
+	// Swagger
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	// Static frontend
 	fs := http.FileServer(http.Dir("./frontend"))

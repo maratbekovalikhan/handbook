@@ -16,6 +16,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Register godoc
+// @Summary Register a new user
+// @Description create a new user account
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param user body models.User true "User registration info"
+// @Success 201 {object} map[string]string
+// @Router /register [post]
 func Register(w http.ResponseWriter, r *http.Request) {
 	var input models.User
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -47,6 +56,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User created"})
 }
 
+// Login godoc
+// @Summary Login user
+// @Description authenticate user and return JWT
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param credentials body models.User true "User credentials"
+// @Success 200 {object} map[string]string
+// @Router /login [post]
 func Login(w http.ResponseWriter, r *http.Request) {
 	var input models.User
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -109,6 +127,15 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// Profile godoc
+// @Summary Get user profile
+// @Description get current user details, their courses and enrolled courses
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Success 200 {object} map[string]interface{}
+// @Router /profile [get]
 func Profile(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	objID, _ := primitive.ObjectIDFromHex(userID)

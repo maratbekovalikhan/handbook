@@ -15,6 +15,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// RateCourse godoc
+// @Summary Rate a course
+// @Description rate a course from 1 to 5 stars
+// @Tags rating
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param rating body map[string]interface{} true "Rating info (course_id, score)"
+// @Success 200 {object} map[string]interface{}
+// @Router /rate [post]
 func RateCourse(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	userObjID, _ := primitive.ObjectIDFromHex(userID)
@@ -96,6 +106,16 @@ func RateCourse(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetUserRating godoc
+// @Summary Get user's rating for a course
+// @Description get the score given by the current user to a specific course
+// @Tags rating
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param course_id query string true "Course ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /user_rating [get]
 func GetUserRating(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	userObjID, _ := primitive.ObjectIDFromHex(userID)

@@ -14,6 +14,16 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// GenerateCertificate godoc
+// @Summary Generate course certificate
+// @Description generate a PDF certificate for a finished course
+// @Tags certificate
+// @Accept  json
+// @Produce  application/pdf
+// @Security Bearer
+// @Param course_id query string true "Course ID"
+// @Success 200 {file} file
+// @Router /certificate [get]
 func GenerateCertificate(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {

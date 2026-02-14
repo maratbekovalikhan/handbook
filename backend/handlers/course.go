@@ -13,6 +13,16 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// CreateCourse godoc
+// @Summary Create a new course
+// @Description create a new course with sections
+// @Tags courses
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param course body models.Course true "Course content"
+// @Success 200 {object} map[string]string
+// @Router /courses [post]
 func CreateCourse(w http.ResponseWriter, r *http.Request) {
 	var course models.Course
 	if err := json.NewDecoder(r.Body).Decode(&course); err != nil {
@@ -59,6 +69,14 @@ func CreateCourse(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Course created"})
 }
 
+// GetCourses godoc
+// @Summary Get all courses
+// @Description get list of all courses
+// @Tags courses
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} models.Course
+// @Router /courses [get]
 func GetCourses(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -75,6 +93,15 @@ func GetCourses(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(courses)
 }
 
+// GetCourse godoc
+// @Summary Get course by ID
+// @Description get details of a single course
+// @Tags courses
+// @Accept  json
+// @Produce  json
+// @Param id query string true "Course ID"
+// @Success 200 {object} models.Course
+// @Router /course [get]
 func GetCourse(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
@@ -101,6 +128,16 @@ func GetCourse(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(course)
 }
 
+// DeleteCourse godoc
+// @Summary Delete a course
+// @Description delete a course by ID (Admin or Author only)
+// @Tags courses
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param id query string true "Course ID"
+// @Success 200 {object} map[string]string
+// @Router /course [delete]
 func DeleteCourse(w http.ResponseWriter, r *http.Request) {
 	// Get User ID from context
 	userID := r.Context().Value("userID").(string)

@@ -14,6 +14,16 @@ import (
 )
 
 // GetProgress returns the user's progress for a specific course
+// GetProgress godoc
+// @Summary Get user progress
+// @Description get current progress of the user for a specific course
+// @Tags progress
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param course_id query string true "Course ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /progress [get]
 func GetProgress(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
@@ -55,7 +65,16 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Enroll starts the course for the user
+// Enroll godoc
+// @Summary Enroll in a course
+// @Description start learning a new course
+// @Tags progress
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param enrollment body map[string]string true "Enrollment info (course_id)"
+// @Success 200 {object} map[string]string
+// @Router /enroll [post]
 func Enroll(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
@@ -107,7 +126,16 @@ func Enroll(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Enrolled successfully"})
 }
 
-// CompleteSection marks a section as done
+// CompleteSection godoc
+// @Summary Complete a section
+// @Description mark a course section as finished
+// @Tags progress
+// @Accept  json
+// @Produce  json
+// @Security Bearer
+// @Param section_completion body map[string]string true "Completion info (course_id, section_id)"
+// @Success 200 {object} map[string]string
+// @Router /complete_section [post]
 func CompleteSection(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(string)
 	if !ok {

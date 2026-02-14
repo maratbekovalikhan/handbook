@@ -1,0 +1,379 @@
+basePath: /api
+definitions:
+  models.Course:
+    properties:
+      author_id:
+        type: string
+      author_name:
+        type: string
+      average_rating:
+        type: number
+      description:
+        type: string
+      general_info:
+        type: string
+      id:
+        type: string
+      level:
+        type: string
+      photo_url:
+        type: string
+      rating_count:
+        type: integer
+      sections:
+        items:
+          $ref: '#/definitions/models.Section'
+        type: array
+      title:
+        type: string
+    type: object
+  models.Section:
+    properties:
+      content:
+        description: Markdown or HTML content
+        type: string
+      id:
+        type: string
+      order:
+        type: integer
+      title:
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        description: '"user" or "admin"'
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a handbook platform backend server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Handbook API
+  version: "1.0"
+paths:
+  /certificate:
+    get:
+      consumes:
+      - application/json
+      description: generate a PDF certificate for a finished course
+      parameters:
+      - description: Course ID
+        in: query
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - Bearer: []
+      summary: Generate course certificate
+      tags:
+      - certificate
+  /complete_section:
+    post:
+      consumes:
+      - application/json
+      description: mark a course section as finished
+      parameters:
+      - description: Completion info (course_id, section_id)
+        in: body
+        name: section_completion
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Complete a section
+      tags:
+      - progress
+  /course:
+    delete:
+      consumes:
+      - application/json
+      description: delete a course by ID (Admin or Author only)
+      parameters:
+      - description: Course ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete a course
+      tags:
+      - courses
+    get:
+      consumes:
+      - application/json
+      description: get details of a single course
+      parameters:
+      - description: Course ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Course'
+      summary: Get course by ID
+      tags:
+      - courses
+  /courses:
+    get:
+      consumes:
+      - application/json
+      description: get list of all courses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Course'
+            type: array
+      summary: Get all courses
+      tags:
+      - courses
+    post:
+      consumes:
+      - application/json
+      description: create a new course with sections
+      parameters:
+      - description: Course content
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/models.Course'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a new course
+      tags:
+      - courses
+  /enroll:
+    post:
+      consumes:
+      - application/json
+      description: start learning a new course
+      parameters:
+      - description: Enrollment info (course_id)
+        in: body
+        name: enrollment
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Enroll in a course
+      tags:
+      - progress
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: authenticate user and return JWT
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - auth
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: get current user details, their courses and enrolled courses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get user profile
+      tags:
+      - auth
+  /progress:
+    get:
+      consumes:
+      - application/json
+      description: get current progress of the user for a specific course
+      parameters:
+      - description: Course ID
+        in: query
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get user progress
+      tags:
+      - progress
+  /rate:
+    post:
+      consumes:
+      - application/json
+      description: rate a course from 1 to 5 stars
+      parameters:
+      - description: Rating info (course_id, score)
+        in: body
+        name: rating
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Rate a course
+      tags:
+      - rating
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: create a new user account
+      parameters:
+      - description: User registration info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /user_rating:
+    get:
+      consumes:
+      - application/json
+      description: get the score given by the current user to a specific course
+      parameters:
+      - description: Course ID
+        in: query
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get user's rating for a course
+      tags:
+      - rating
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
