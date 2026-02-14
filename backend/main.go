@@ -7,22 +7,46 @@ import (
 
 	"handbook/config"
 	"handbook/handlers"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// ==== Load .env ====
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env")
+	}
 
 	config.Connect()
 
 	mux := http.NewServeMux()
 
+	// API courses
 	mux.HandleFunc("/api/courses", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
-			handlers.CreateCourse(w, r)
+			handlers.AuthMiddleware(handlers.CreateCourse)(w, r)
 		} else if r.Method == "GET" {
 			handlers.GetCourses(w, r)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	})
 
+	mux.HandleFunc("/api/course", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			handlers.GetCourse(w, r)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	})
+
+	// API auth
+	mux.HandleFunc("/api/register", handlers.Register)
+	mux.HandleFunc("/api/login", handlers.Login)
+	mux.HandleFunc("/api/profile", handlers.AuthMiddleware(handlers.Profile))
+
+	// Static frontend
 	fs := http.FileServer(http.Dir("./frontend"))
 	mux.Handle("/", fs)
 
@@ -37,9 +61,8 @@ func main() {
 
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 
 		if r.Method == "OPTIONS" {

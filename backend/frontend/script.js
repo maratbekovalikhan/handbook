@@ -7,15 +7,21 @@ if (form) {
 
         const title = document.getElementById("title").value;
         const level = document.getElementById("level").value;
+        const description = document.getElementById("description").value;
+        const photo_url = document.getElementById("photo_url").value;
+        const general_info = document.getElementById("general_info").value;
 
+        const token = localStorage.getItem('token');
         await fetch("/api/courses", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, level })
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ title, level, description, photo_url, general_info })
         });
 
-        alert("Course added!");
-        window.location.href = "/";
+        window.location.href = "index.html";
     });
 }
 

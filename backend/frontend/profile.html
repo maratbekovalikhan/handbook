@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - Handbook</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background-color: #f4f7f6; }
+        .profile-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; color: #333; }
+        .info-group { margin-bottom: 15px; font-size: 18px; }
+        .info-label { font-weight: bold; color: #666; width: 100px; display: inline-block; }
+        .btn-logout { background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .back-link { display: block; margin-top: 20px; color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="profile-card">
+    <h1>User Profile</h1>
+    <div id="userInfo">
+        <p>Loading...</p>
+    </div>
+
+    <div id="userCourses" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+        <h3>My Courses</h3>
+        <div id="courseList">Loading courses...</div>
+    </div>
+
+    <button class="btn-logout" onclick="logout()">Logout</button>
+    <a href="index.html" class="back-link">← Back to Home</a>
+</div>
+
+<script>
+    async function loadProfile() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const res = await fetch('/api/profile', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            const user = data.user;
+            const courses = data.courses;
+
+            document.getElementById('userInfo').innerHTML = `
+                <div class="info-group"><span class="info-label">Name:</span> ${user.name}</div>
+                <div class="info-group"><span class="info-label">Email:</span> ${user.email}</div>
+            `;
+
+            const courseList = document.getElementById('courseList');
+            if (courses && courses.length > 0) {
+                let html = '<ul style="list-style: none; padding: 0;">';
+                courses.forEach(c => {
+                    // Handle ID format
+                    const courseId = (typeof c.id === 'object' && c.id !== null) ? (c.id.$oid || JSON.stringify(c.id)) : c.id;
+                    
+                    html += `
+                        <li style="background: #f8f9fa; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 500;">${c.title}</span>
+                            <a href="course_detail.html?id=${courseId}" style="text-decoration: none; color: #007bff; font-size: 0.9em;">View</a>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                courseList.innerHTML = html;
+            } else {
+                courseList.innerHTML = '<p style="color: #666; font-style: italic;">You haven\'t created any courses yet.</p>';
+            }
+
+        } else {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+    }
+
+    loadProfile();
+</script>
+</body>
+</html>

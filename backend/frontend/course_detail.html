@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Course Details - Handbook</title>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f4f7f6; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .nav-links a { margin-left: 15px; text-decoration: none; color: #007bff; font-weight: 500; }
+    h1 { color: #333; margin: 0; }
+    .course-detail { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .course-header { display: flex; gap: 25px; margin-bottom: 30px; }
+    .course-photo { width: 250px; height: 250px; object-fit: cover; border-radius: 8px; background-color: #eee; }
+    .course-info h2 { margin-top: 0; color: #007bff; }
+    .level-badge { background: #e9ecef; padding: 6px 12px; border-radius: 15px; font-size: 0.9em; color: #495057; font-weight: 600; display: inline-block; margin-bottom: 15px; }
+    .section { margin-bottom: 25px; }
+    .section h3 { border-bottom: 2px solid #eee; padding-bottom: 8px; color: #333; }
+    .section p { line-height: 1.6; color: #555; white-space: pre-wrap; }
+    .back-btn { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #666; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+    <h1>Handbook</h1>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+    </div>
+</div>
+
+<a href="index.html" class="back-btn">← Back to List</a>
+
+<div id="courseContent" class="course-detail">
+    <p>Loading data...</p>
+</div>
+
+<script>
+    async function loadCourseDetail() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('id');
+
+        if (!courseId) {
+            document.getElementById('courseContent').innerHTML = '<p>Course ID not specified</p>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/course?id=${courseId}`);
+            if (!res.ok) throw new Error('Course not found');
+            const course = await res.json();
+
+            const photoHtml = course.photo_url ? `<img src="${course.photo_url}" class="course-photo" alt="${course.title}">` : '<div class="course-photo" style="display:flex;align-items:center;justify-content:center;color:#999">No Photo</div>';
+
+            document.getElementById('courseContent').innerHTML = `
+                <div class="course-header">
+                    ${photoHtml}
+                    <div class="course-info">
+                        <h2>${course.title}</h2>
+                        <span class="level-badge">Level: ${course.level || 'Not specified'}</span>
+                        <p><strong>Author:</strong> ${course.author_name || 'Unknown'}</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Description</h3>
+                    <p>${course.description || 'No description available'}</p>
+                </div>
+
+                <div class="section">
+                    <h3>General Information</h3>
+                    <p>${course.general_info || 'No additional information'}</p>
+                </div>
+            `;
+        } catch (err) {
+            document.getElementById('courseContent').innerHTML = `<p>Error: ${err.message}</p>`;
+        }
+    }
+
+    loadCourseDetail();
+</script>
+</body>
+</html>
