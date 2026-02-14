@@ -20,8 +20,13 @@
         <p>Loading...</p>
     </div>
 
+    <div id="enrolledCourses" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+        <h3>Learning in Progress</h3>
+        <div id="enrolledList">Loading...</div>
+    </div>
+
     <div id="userCourses" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-        <h3>My Courses</h3>
+        <h3>My Created Courses</h3>
         <div id="courseList">Loading courses...</div>
     </div>
 
@@ -44,18 +49,74 @@
         if (res.ok) {
             const data = await res.json();
             const user = data.user;
-            const courses = data.courses;
+            const courses = data.courses; // Created courses
+            const enrolled = data.enrolled_courses; // Enrolled courses
 
             document.getElementById('userInfo').innerHTML = `
                 <div class="info-group"><span class="info-label">Name:</span> ${user.name}</div>
                 <div class="info-group"><span class="info-label">Email:</span> ${user.email}</div>
             `;
 
+            // Render Enrolled Courses
+            const enrolledList = document.getElementById('enrolledList');
+            if (enrolled && enrolled.length > 0) {
+                 let html = '<ul style="list-style: none; padding: 0;">';
+                 enrolled.forEach(item => {
+                     const c = item.course;
+                     const p = item.progress;
+                     const courseId = (typeof c.id === 'object' && c.id !== null) ? (c.id.$oid || JSON.stringify(c.id)) : c.id;
+                     
+                     const total = c.sections ? c.sections.length : 0;
+                     const done = p.completed_section_ids ? p.completed_section_ids.length : 0;
+                     const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+                     const isCompleted = percent === 100 || p.is_finished;
+                     
+                     let liStyle = 'background: #e3f2fd; border: 1px solid #bbdefb;';
+                     let titleColor = '#0d47a1';
+                     let statusText = `${done}/${total} steps (${percent}%)`;
+                     let statusColor = '#546e7a';
+                     let barBg = '#bbdefb';
+                     let barFill = '#1976d2';
+                     let btnText = 'Continue Learning →';
+                     let btnColor = '#1565c0';
+
+                     if (isCompleted) {
+                         liStyle = 'background: #d4edda; border: 1px solid #c3e6cb;';
+                         titleColor = '#155724';
+                         statusText = 'Completed ✅';
+                         statusColor = '#155724';
+                         barBg = '#c3e6cb';
+                         barFill = '#28a745';
+                         btnText = 'Review Course';
+                         btnColor = '#155724';
+                     }
+
+                     html += `
+                        <li style="${liStyle} padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <strong style="color:${titleColor};">${c.title}</strong>
+                                <span style="font-size:0.9em; color:${statusColor}; font-weight: ${isCompleted ? 'bold' : 'normal'}">${statusText}</span>
+                            </div>
+                            <div style="background:${barBg}; height:8px; border-radius:4px; overflow:hidden; margin-bottom: 10px;">
+                                <div style="width:${percent}%; background:${barFill}; height:100%; transition: width 0.5s;"></div>
+                            </div>
+                            <div style="text-align:right;">
+                                <a href="course_detail.html?id=${courseId}" style="text-decoration:none; color:${btnColor}; font-weight:600; font-size:0.95em;">${btnText}</a>
+                            </div>
+                        </li>
+                     `;
+                 });
+                 html += '</ul>';
+                 enrolledList.innerHTML = html;
+            } else {
+                 enrolledList.innerHTML = '<p style="color: #666; font-style: italic;">You are not enrolled in any courses yet.</p>';
+            }
+
+            // Render Created Courses
             const courseList = document.getElementById('courseList');
             if (courses && courses.length > 0) {
                 let html = '<ul style="list-style: none; padding: 0;">';
                 courses.forEach(c => {
-                    // Handle ID format
                     const courseId = (typeof c.id === 'object' && c.id !== null) ? (c.id.$oid || JSON.stringify(c.id)) : c.id;
                     
                     html += `

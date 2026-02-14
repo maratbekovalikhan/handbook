@@ -134,9 +134,32 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 		courses = []models.Course{}
 	}
 
+	// Fetch enrolled courses
+	progCursor, err := config.DB.Collection("progress").Find(ctx, bson.M{"user_id": objID})
+	var progressList []models.Progress
+	if err == nil {
+		progCursor.All(ctx, &progressList)
+	}
+
+	var enrolledCourses []map[string]interface{}
+	for _, p := range progressList {
+		var c models.Course
+		err := config.DB.Collection("courses").FindOne(ctx, bson.M{"_id": p.CourseID}).Decode(&c)
+		if err == nil {
+			enrolledCourses = append(enrolledCourses, map[string]interface{}{
+				"course":   c,
+				"progress": p,
+			})
+		}
+	}
+	if enrolledCourses == nil {
+		enrolledCourses = []map[string]interface{}{}
+	}
+
 	response := map[string]interface{}{
-		"user":    user,
-		"courses": courses,
+		"user":             user,
+		"courses":          courses,
+		"enrolled_courses": enrolledCourses,
 	}
 
 	json.NewEncoder(w).Encode(response)

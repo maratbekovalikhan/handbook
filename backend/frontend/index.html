@@ -15,6 +15,78 @@
     .course-table th { background-color: #007bff; color: white; }
     .course-table tr:hover { background-color: #f9f9f9; }
     .level-badge { background: #e9ecef; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; color: #495057; font-weight: 500; }
+
+    /* Grid View Styles */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+    }
+    .course-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .card-img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        background-color: #eee;
+    }
+    .card-body {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .card-title {
+        margin: 0 0 10px 0;
+        font-size: 1.2em;
+        color: #333;
+    }
+    .card-meta {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .card-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .view-toggle {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+    .btn-toggle {
+        background: none;
+        border: 1px solid #ccc;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-left: 10px;
+        color: #555;
+    }
+    .btn-toggle.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
 </style>
 </head>
 <body>
@@ -26,14 +98,32 @@
     </div>
 </div>
 
-<div id="adminActions" style="display: none; margin-bottom: 20px;">
-    <a href="form.html" class="btn-add">➕ Add New Course</a>
+<div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+    
+    <div id="adminActions" style="display: none;">
+        <a href="form.html" class="btn-add" style="margin-bottom: 0;">➕ Add New Course</a>
+    </div>
+    
+    <div style="flex-grow: 1; display: flex; justify-content: center;">
+        <input type="text" id="searchInput" placeholder="Search courses..." oninput="handleSearch()" style="width: 100%; max-width: 400px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: border-color 0.2s;">
+    </div>
+
+    <div class="view-toggle" style="margin-bottom: 0;">
+        <button class="btn-toggle active" id="btnGrid" onclick="switchView('grid')" title="Grid View">
+            <!-- Simple SVG Icon or text -->
+            Grid
+        </button>
+        <button class="btn-toggle" id="btnList" onclick="switchView('list')" title="List View">
+            List
+        </button>
+    </div>
 </div>
 
 <div id="courses"></div>
 
 <script src="js/main.js"></script>
 <script>
+    // View state is handled in main.js now, but we need to initialize UI
     function updateNavbar() {
         const token = localStorage.getItem('token');
         const navLinks = document.getElementById('navLinks');
