@@ -57,6 +57,9 @@ func main() {
 	mux.HandleFunc("/api/login", handlers.Login)
 	mux.HandleFunc("/api/profile", handlers.AuthMiddleware(handlers.Profile))
 
+	// API Certificate
+	mux.HandleFunc("/api/certificate", handlers.AuthMiddleware(handlers.GenerateCertificate))
+
 	// Static frontend
 	fs := http.FileServer(http.Dir("./frontend"))
 	mux.Handle("/", fs)

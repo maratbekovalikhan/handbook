@@ -15,7 +15,11 @@ import (
 
 // GetProgress returns the user's progress for a specific course
 func GetProgress(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(string)
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", 401)
+		return
+	}
 	userObjID, _ := primitive.ObjectIDFromHex(userID)
 	
 	courseIDStr := r.URL.Query().Get("course_id")
@@ -23,13 +27,17 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing course_id", 400)
 		return
 	}
-	courseObjID, _ := primitive.ObjectIDFromHex(courseIDStr)
+	courseObjID, err := primitive.ObjectIDFromHex(courseIDStr)
+	if err != nil {
+		http.Error(w, "Invalid course ID", 400)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	var progress models.Progress
-	err := config.DB.Collection("progress").FindOne(ctx, bson.M{
+	err = config.DB.Collection("progress").FindOne(ctx, bson.M{
 		"user_id":   userObjID,
 		"course_id": courseObjID,
 	}).Decode(&progress)
@@ -49,7 +57,11 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 
 // Enroll starts the course for the user
 func Enroll(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(string)
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", 401)
+		return
+	}
 	userObjID, _ := primitive.ObjectIDFromHex(userID)
 
 	var input struct {
@@ -59,7 +71,11 @@ func Enroll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", 400)
 		return
 	}
-	courseObjID, _ := primitive.ObjectIDFromHex(input.CourseID)
+	courseObjID, err := primitive.ObjectIDFromHex(input.CourseID)
+	if err != nil {
+		http.Error(w, "Invalid course ID", 400)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -82,7 +98,7 @@ func Enroll(w http.ResponseWriter, r *http.Request) {
 		IsFinished:          false,
 	}
 
-	_, err := config.DB.Collection("progress").InsertOne(ctx, newProgress)
+	_, err = config.DB.Collection("progress").InsertOne(ctx, newProgress)
 	if err != nil {
 		http.Error(w, "Error enrolling", 500)
 		return
@@ -93,7 +109,11 @@ func Enroll(w http.ResponseWriter, r *http.Request) {
 
 // CompleteSection marks a section as done
 func CompleteSection(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(string)
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", 401)
+		return
+	}
 	userObjID, _ := primitive.ObjectIDFromHex(userID)
 
 	var input struct {
@@ -104,7 +124,11 @@ func CompleteSection(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", 400)
 		return
 	}
-	courseObjID, _ := primitive.ObjectIDFromHex(input.CourseID)
+	courseObjID, err := primitive.ObjectIDFromHex(input.CourseID)
+	if err != nil {
+		http.Error(w, "Invalid course ID", 400)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -114,7 +138,7 @@ func CompleteSection(w http.ResponseWriter, r *http.Request) {
 		"$addToSet": bson.M{"completed_section_ids": input.SectionID},
 	}
 	
-	_, err := config.DB.Collection("progress").UpdateOne(ctx, bson.M{
+	_, err = config.DB.Collection("progress").UpdateOne(ctx, bson.M{
 		"user_id":   userObjID,
 		"course_id": courseObjID,
 	}, update)
@@ -141,7 +165,10 @@ func CompleteSection(w http.ResponseWriter, r *http.Request) {
 			config.DB.Collection("progress").UpdateOne(ctx, bson.M{
 				"user_id":   userObjID,
 				"course_id": courseObjID,
-			}, bson.M{"$set": bson.M{"is_finished": true}})
+			}, bson.M{"$set": bson.M{
+				"is_finished": true,
+				"finished_at": time.Now(),
+			}})
 		}
 	}
 
