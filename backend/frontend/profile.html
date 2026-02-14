@@ -19,6 +19,12 @@
     <div id="userInfo">
         <p>Loading...</p>
     </div>
+
+    <div id="userCourses" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+        <h3>My Courses</h3>
+        <div id="courseList">Loading courses...</div>
+    </div>
+
     <button class="btn-logout" onclick="logout()">Logout</button>
     <a href="index.html" class="back-link">← Back to Home</a>
 </div>
@@ -36,11 +42,35 @@
         });
 
         if (res.ok) {
-            const user = await res.json();
+            const data = await res.json();
+            const user = data.user;
+            const courses = data.courses;
+
             document.getElementById('userInfo').innerHTML = `
                 <div class="info-group"><span class="info-label">Name:</span> ${user.name}</div>
                 <div class="info-group"><span class="info-label">Email:</span> ${user.email}</div>
             `;
+
+            const courseList = document.getElementById('courseList');
+            if (courses && courses.length > 0) {
+                let html = '<ul style="list-style: none; padding: 0;">';
+                courses.forEach(c => {
+                    // Handle ID format
+                    const courseId = (typeof c.id === 'object' && c.id !== null) ? (c.id.$oid || JSON.stringify(c.id)) : c.id;
+                    
+                    html += `
+                        <li style="background: #f8f9fa; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 500;">${c.title}</span>
+                            <a href="course_detail.html?id=${courseId}" style="text-decoration: none; color: #007bff; font-size: 0.9em;">View</a>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                courseList.innerHTML = html;
+            } else {
+                courseList.innerHTML = '<p style="color: #666; font-style: italic;">You haven\'t created any courses yet.</p>';
+            }
+
         } else {
             localStorage.removeItem('token');
             window.location.href = 'login.html';

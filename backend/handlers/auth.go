@@ -123,5 +123,21 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.Password = ""
-	json.NewEncoder(w).Encode(user)
+
+	// Fetch user's courses
+	cursor, err := config.DB.Collection("courses").Find(ctx, bson.M{"author_id": objID})
+	var courses []models.Course
+	if err == nil {
+		cursor.All(ctx, &courses)
+	}
+	if courses == nil {
+		courses = []models.Course{}
+	}
+
+	response := map[string]interface{}{
+		"user":    user,
+		"courses": courses,
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
