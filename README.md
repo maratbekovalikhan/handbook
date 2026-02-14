@@ -65,7 +65,3 @@ go run scripts/migrate_roles.go
 - `docs/`: Auto-generated Swagger documentation.
 - `frontend/`: Static frontend files (HTML/JS).
 - `scripts/`: Maintenance and migration scripts.
-
-## License
-
-This project is licensed under the Apache 2.0 License.
