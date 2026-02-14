@@ -253,12 +253,44 @@
             statusDiv.innerHTML = `<button onclick="enroll('${course.id || course._id}')" style="background:#007bff; color:white; border:none; padding:10px 20px; border-radius:5px; font-size:16px; cursor:pointer;">Start Learning</button>`;
             renderSections(course.sections || [], [], false);
         } else {
-            const progressText = data.is_finished ? 
+            let progressText = data.is_finished ? 
                 '<span style="color:green; font-weight:bold;">Course Completed! 🎉</span>' : 
                 `<span style="color:#666;">Progress: ${data.completed_section_ids.length} / ${course.sections ? course.sections.length : 0} steps</span>`;
             
+            if (data.is_finished) {
+                progressText += `
+                    <div style="margin-top:10px;">
+                        <button onclick="downloadCertificate('${course.id || course._id}')" style="background:#28a745; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer; font-weight:bold;">Download Certificate (PDF)</button>
+                    </div>
+                `;
+            }
+
             statusDiv.innerHTML = progressText;
             renderSections(course.sections || [], data.completed_section_ids, true);
+        }
+    }
+
+    async function downloadCertificate(courseId) {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/certificate?course_id=${courseId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) {
+                alert("Failed to download certificate. Make sure you finished the course.");
+                return;
+            }
+            const blobData = await res.blob();
+            const url = window.URL.createObjectURL(blobData);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Certificate.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (e) {
+            console.error(e);
+            alert("Error downloading certificate");
         }
     }
 
